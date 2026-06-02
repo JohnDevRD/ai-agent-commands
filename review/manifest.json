@@ -1,8 +1,8 @@
 {
   "name": "review",
-  "displayName": "Code Review",
-  "description": "Comandos para revisar código: seguridad, performance, buenas prácticas",
+  "displayName": "Revision de codigo",
+  "description": "Comandos para revisar codigo: seguridad, rendimiento y buenas practicas",
   "version": "0.0.0",
-  "icon": "🔍",
+  "icon": "review",
   "commands": []
 }

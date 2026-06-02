@@ -1,8 +1,8 @@
 {
   "name": "docs",
-  "displayName": "Documentation",
-  "description": "Comandos para generar y mantener documentación técnica",
+  "displayName": "Documentacion",
+  "description": "Comandos para generar y mantener documentacion tecnica",
   "version": "0.0.0",
-  "icon": "📚",
+  "icon": "docs",
   "commands": []
 }

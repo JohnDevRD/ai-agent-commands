@@ -1,8 +1,8 @@
 {
   "name": "refactor",
-  "displayName": "Refactoring",
-  "description": "Comandos para refactorizar y mejorar código existente",
+  "displayName": "Refactorizacion",
+  "description": "Comandos para refactorizar y mejorar codigo existente",
   "version": "0.0.0",
-  "icon": "♻️",
+  "icon": "refactor",
   "commands": []
 }

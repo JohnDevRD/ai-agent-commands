@@ -1,8 +1,8 @@
 {
   "name": "api",
-  "displayName": "API & REST",
-  "description": "Comandos para diseñar, documentar y testear APIs",
+  "displayName": "API y REST",
+  "description": "Comandos para disenar, documentar y testear APIs",
   "version": "0.0.0",
-  "icon": "🔌",
+  "icon": "api",
   "commands": []
 }

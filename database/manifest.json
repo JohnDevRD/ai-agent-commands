@@ -1,8 +1,8 @@
 {
   "name": "database",
-  "displayName": "Database",
-  "description": "Comandos para trabajar con bases de datos: migraciones, queries, schemas",
+  "displayName": "Base de datos",
+  "description": "Comandos para trabajar con bases de datos: migraciones, consultas y esquemas",
   "version": "0.0.0",
-  "icon": "🗄️",
+  "icon": "db",
   "commands": []
 }

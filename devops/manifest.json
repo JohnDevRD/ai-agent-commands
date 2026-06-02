@@ -1,14 +1,14 @@
 {
   "name": "devops",
-  "displayName": "DevOps & Infrastructure",
-  "description": "Comandos para automatizar tareas de infraestructura: Docker, CI/CD, deployments",
+  "displayName": "DevOps e infraestructura",
+  "description": "Comandos para automatizar tareas de infraestructura: Docker, CI/CD y despliegues",
   "version": "1.0.0",
-  "icon": "🚀",
+  "icon": "devops",
   "commands": [
     {
       "id": "gen-docker",
       "file": "gen-docker.md",
-      "description": "Analiza un proyecto y genera Dockerfiles + docker-compose optimizados",
+      "description": "Analiza un proyecto y genera Dockerfiles y docker-compose optimizados",
       "tags": ["docker", "devops", "dockerfile", "docker-compose", "containers"],
       "slashCommand": "/gen-docker"
     }

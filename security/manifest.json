@@ -1,8 +1,8 @@
 {
   "name": "security",
-  "displayName": "Security",
-  "description": "Comandos para auditorías de seguridad y análisis de vulnerabilidades",
+  "displayName": "Seguridad",
+  "description": "Comandos para auditorias de seguridad y analisis de vulnerabilidades",
   "version": "0.0.0",
-  "icon": "🔒",
+  "icon": "security",
   "commands": []
 }

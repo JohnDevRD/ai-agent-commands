@@ -1,8 +1,8 @@
 # =============================================================================
-# ai-agent-commands - Interactive installer (PowerShell)
+# ai-agent-commands - Instalador interactivo (PowerShell)
 # =============================================================================
-# Compatible with: Windows PowerShell 5.1+, PowerShell Core 7+
-# Usage:
+# Compatible con: Windows PowerShell 5.1+, PowerShell Core 7+
+# Uso:
 #   iwr -useb https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.ps1 | iex
 #   .\install.ps1
 # =============================================================================
@@ -10,7 +10,7 @@
 #Requires -Version 5.1
 $ErrorActionPreference = "Stop"
 
-# -- Configuration --
+# -- Configuracion --
 $RepoUrl = "https://github.com/JohnDevRD/ai-agent-commands"
 $RepoBranch = "main"
 $ScriptPath = $MyInvocation.MyCommand.Path
@@ -23,11 +23,11 @@ $ScriptDir = if (-not [string]::IsNullOrWhiteSpace($ScriptPath)) {
 }
 $CacheDir = Join-Path $env:USERPROFILE ".cache\ai-agent-commands"
 
-# -- Output helpers --
+# -- Funciones de salida --
 function Print-Banner {
     Write-Host ""
     Write-Host "================================================" -ForegroundColor Cyan
-    Write-Host "  AI Agent Commands - Installer" -ForegroundColor Cyan
+    Write-Host "  AI Agent Commands - Instalador" -ForegroundColor Cyan
     Write-Host "================================================" -ForegroundColor Cyan
     Write-Host ""
 }
@@ -72,56 +72,56 @@ function Invoke-GitQuiet {
     }
 }
 
-# -- Installation target --
+# -- Destino de instalacion --
 function Detect-InstallTarget {
-    Print-Header "Installation target"
-    Write-Host "  1) Current project (./.opencode/commands/)"
-    Write-Host "  2) User global (~/.config/opencode/commands/)"
-    Write-Host "  3) Custom path"
-    Prompt-Input "Choose an option" "1" "choice"
+    Print-Header "Destino de instalacion"
+    Write-Host "  1) Proyecto actual (./.opencode/commands/)"
+    Write-Host "  2) Global del usuario (~/.config/opencode/commands/)"
+    Write-Host "  3) Ruta personalizada"
+    Prompt-Input "Elegir una opcion" "1" "choice"
 
     switch ($choice) {
         "1" { $script:InstallDir = Join-Path (Get-Location) ".opencode\commands" }
         "2" { $script:InstallDir = Join-Path $env:USERPROFILE ".config\opencode\commands" }
         "3" {
-            Prompt-Input "Full destination path" "" "customPath"
+            Prompt-Input "Ruta completa de destino" "" "customPath"
             $script:InstallDir = $customPath
         }
         default {
-            Print-Error "Invalid option"
+            Print-Error "Opcion invalida"
             exit 1
         }
     }
 
-    Print-Info "Selected target: $InstallDir"
+    Print-Info "Destino seleccionado: $InstallDir"
 }
 
-# -- Fetch catalog --
+# -- Obtener catalogo --
 function Fetch-Catalog {
-    Print-Header "Fetching catalog"
+    Print-Header "Obteniendo catalogo"
 
     if (Test-Path (Join-Path $CacheDir ".git")) {
-        Print-Info "Updating cached catalog..."
+        Print-Info "Actualizando catalogo en cache..."
         Push-Location $CacheDir
         try {
             Invoke-GitQuiet @("pull", "origin", $RepoBranch)
         } catch {
-            Print-Warning "Could not update cache; using existing local cache"
+            Print-Warning "No se pudo actualizar el cache; se usara el cache local existente"
         } finally {
             Pop-Location
         }
     } else {
-        Print-Info "Cloning catalog for the first time..."
+        Print-Info "Clonando catalogo por primera vez..."
         try {
             New-Item -ItemType Directory -Path (Split-Path $CacheDir) -Force | Out-Null
             Invoke-GitQuiet @("clone", "--depth", "1", "--branch", $RepoBranch, $RepoUrl, $CacheDir)
         } catch {
-            Print-Error "Could not clone the repository. Check your connection and git installation."
+            Print-Error "No se pudo clonar el repositorio. Verifica tu conexion y la instalacion de git."
             if ($_.Exception.Message) {
                 Print-Warning $_.Exception.Message
             }
             if (Test-Path (Join-Path $ScriptDir ".git")) {
-                Print-Warning "Using local repository files as fallback."
+                Print-Warning "Usando archivos locales del repositorio como respaldo."
                 $script:CacheDir = $ScriptDir
             } else {
                 exit 1
@@ -130,12 +130,12 @@ function Fetch-Catalog {
     }
 
     if (-not (Test-Path $CacheDir)) {
-        Print-Error "Catalog was not found."
+        Print-Error "No se encontro el catalogo."
         exit 1
     }
 }
 
-# -- Catalog helpers --
+# -- Ayudantes del catalogo --
 function Get-Categories {
     $categories = @()
     Get-ChildItem -Path $CacheDir -Directory | Sort-Object Name | ForEach-Object {
@@ -150,17 +150,17 @@ function Get-Categories {
 function Show-Categories {
     param([array]$Categories)
 
-    Print-Header "Available categories"
+    Print-Header "Categorias disponibles"
     $i = 1
     foreach ($cat in $Categories) {
         $manifest = Join-Path $CacheDir "$cat\manifest.json"
         $content = Get-Content $manifest -Raw | ConvertFrom-Json
         $count = if ($content.commands) { $content.commands.Count } else { 0 }
-        Write-Host ("  {0}) {1} ({2} commands)" -f $i, $content.displayName, $count) -ForegroundColor Yellow
+        Write-Host ("  {0}) {1} ({2} comandos)" -f $i, $content.displayName, $count) -ForegroundColor Yellow
         $i++
     }
-    Write-Host "  all) Install everything" -ForegroundColor Yellow
-    Write-Host "  q) Quit" -ForegroundColor Yellow
+    Write-Host "  todo) Instalar todo" -ForegroundColor Yellow
+    Write-Host "  q) Salir" -ForegroundColor Yellow
 }
 
 function Show-CommandsInCategory {
@@ -169,12 +169,20 @@ function Show-CommandsInCategory {
     $manifest = Join-Path $CacheDir "$Category\manifest.json"
     $content = Get-Content $manifest -Raw | ConvertFrom-Json
 
-    Print-Header "Commands in: $($content.displayName)"
+    Print-Header "Comandos en: $($content.displayName)"
     $i = 1
     foreach ($cmd in $content.commands) {
         Write-Host ("  {0}) {1} - {2}" -f $i, $cmd.id, $cmd.description)
         $i++
     }
+}
+
+function Get-CommandsFromCategory {
+    param([string]$Category)
+
+    $manifest = Join-Path $CacheDir "$Category\manifest.json"
+    $content = Get-Content $manifest -Raw | ConvertFrom-Json
+    return @($content.commands)
 }
 
 function Install-Command {
@@ -183,7 +191,7 @@ function Install-Command {
     $source = Join-Path $CacheDir "$Category\$CmdFile"
 
     if (-not (Test-Path $source)) {
-        Print-Error "File not found: $source"
+        Print-Error "Archivo no encontrado: $source"
         return
     }
 
@@ -193,14 +201,27 @@ function Install-Command {
 
     $dest = Join-Path $InstallDir $CmdFile
     if (Test-Path $dest) {
-        Print-Warning "Overwriting: $CmdFile"
+        Print-Warning "Sobrescribiendo: $CmdFile"
     }
 
     Copy-Item $source $dest -Force
-    Print-Success "Installed: $CmdFile"
+    Print-Success "Instalado: $CmdFile"
 }
 
-# -- Main flow --
+function Install-AllCategories {
+    param([array]$Categories)
+
+    Print-Header "Instalando todas las categorias"
+    foreach ($cat in $Categories) {
+        $commands = Get-CommandsFromCategory -Category $cat
+        foreach ($cmd in $commands) {
+            Install-Command -Category $cat -CmdFile $cmd.file
+        }
+    }
+    Print-Success "Todo instalado."
+}
+
+# -- Flujo principal --
 function Main {
     Print-Banner
     Detect-InstallTarget
@@ -208,83 +229,85 @@ function Main {
 
     $categories = Get-Categories
     if ($categories.Count -eq 0) {
-        Print-Error "No categories found in catalog."
+        Print-Error "No se encontraron categorias en el catalogo."
         exit 1
     }
 
+    $stopInstalling = $false
     while ($true) {
         Write-Host ""
         Show-Categories -Categories $categories
         Write-Host ""
-        Prompt-Input "Select category, 'all', or 'q'" "" "choice"
+        Prompt-Input "Selecciona categoria, 'todo' o 'q'" "" "choice"
+
+        if ([string]::IsNullOrWhiteSpace($choice)) {
+            Print-Info "No se selecciono ninguna opcion. Saliendo..."
+            break
+        }
 
         switch ($choice.ToLower()) {
             "q" {
-                Print-Info "Exiting..."
+                Print-Info "Saliendo..."
                 exit 0
             }
+            "todo" {
+                Install-AllCategories -Categories $categories
+                $stopInstalling = $true
+            }
             "all" {
-                Print-Header "Installing all categories"
-                foreach ($cat in $categories) {
-                    $catDir = Join-Path $CacheDir $cat
-                    Get-ChildItem -Path $catDir -Filter "*.md" | Sort-Object Name | ForEach-Object {
-                        Install-Command -Category $cat -CmdFile $_.Name
-                    }
-                }
-                Print-Success "Everything installed."
-                break
+                Install-AllCategories -Categories $categories
+                $stopInstalling = $true
             }
             default {
                 $categoryNumber = 0
                 if (-not [int]::TryParse($choice, [ref]$categoryNumber) -or $categoryNumber -lt 1 -or $categoryNumber -gt $categories.Count) {
-                    Print-Error "Invalid option"
+                    Print-Error "Opcion invalida"
                     continue
                 }
 
                 $selectedCat = $categories[$categoryNumber - 1]
                 Show-CommandsInCategory -Category $selectedCat
                 Write-Host ""
-                Prompt-Input "Select commands (example: 1,3,4 or 'all')" "all" "cmdChoice"
+                Prompt-Input "Selecciona comandos (ejemplo: 1,3,4 o 'todo')" "todo" "cmdChoice"
 
-                $catDir = Join-Path $CacheDir $selectedCat
-                $files = @(Get-ChildItem -Path $catDir -Filter "*.md" | Sort-Object Name)
+                $commands = Get-CommandsFromCategory -Category $selectedCat
 
-                if ($cmdChoice.ToLower() -eq "all") {
-                    foreach ($file in $files) {
-                        Install-Command -Category $selectedCat -CmdFile $file.Name
+                if ($cmdChoice.ToLower() -in @("todo", "all")) {
+                    foreach ($cmd in $commands) {
+                        Install-Command -Category $selectedCat -CmdFile $cmd.file
                     }
                 } else {
                     $selected = $cmdChoice -split "," | ForEach-Object { [int]$_.Trim() }
-                    for ($i = 0; $i -lt $files.Count; $i++) {
+                    for ($i = 0; $i -lt $commands.Count; $i++) {
                         if ($selected -contains ($i + 1)) {
-                            Install-Command -Category $selectedCat -CmdFile $files[$i].Name
+                            Install-Command -Category $selectedCat -CmdFile $commands[$i].file
                         }
                     }
                 }
 
                 Write-Host ""
-                Prompt-Input "Install another category?" "y" "continue"
+                Prompt-Input "Instalar otra categoria?" "s" "continue"
                 if ($continue.ToLower() -notin @("s", "si", "y", "yes")) {
-                    break
+                    $stopInstalling = $true
                 }
             }
         }
 
-        if ($choice.ToLower() -eq "all") { break }
+        if ($stopInstalling) { break }
     }
 
     Write-Host ""
-    Print-Header "Summary"
-    Print-Success "Commands installed in: $InstallDir"
+    Print-Header "Resumen"
+    Print-Success "Comandos instalados en: $InstallDir"
     Write-Host ""
-    Print-Info "Commands available in your AI agent:"
+    Print-Info "Comandos disponibles en tu agente IA:"
     if (Test-Path $InstallDir) {
         Get-ChildItem -Path $InstallDir -Filter "*.md" | Sort-Object Name | ForEach-Object {
             Write-Host "  /$($_.BaseName)" -ForegroundColor Green
         }
     }
     Write-Host ""
-    Print-Success "Done. You can now use the commands in your AI agent."
+    Print-Success "Listo. Ya podes usar los comandos en tu agente IA."
 }
 
 Main

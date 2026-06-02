@@ -1,35 +1,35 @@
 {
   "name": "git",
-  "displayName": "Git & GitHub",
+  "displayName": "Git y GitHub",
   "description": "Comandos para automatizar flujos de trabajo con Git y GitHub: commits, pull requests, issues y ramas",
   "version": "1.0.0",
-  "icon": "🔀",
+  "icon": "git",
   "commands": [
     {
       "id": "gen-commit",
       "file": "gen-commit.md",
-      "description": "Genera un commit message profesional siguiendo Conventional Commits",
+      "description": "Genera un mensaje de commit profesional siguiendo Conventional Commits",
       "tags": ["git", "commit", "conventional-commits"],
       "slashCommand": "/gen-commit"
     },
     {
       "id": "create-pr",
       "file": "create-pr.md",
-      "description": "Analiza el repo y genera uno o más Pull Requests completos y listos para publicar",
+      "description": "Analiza el repo y genera uno o mas Pull Requests completos y listos para publicar",
       "tags": ["git", "github", "pull-request", "pr"],
       "slashCommand": "/create-pr"
     },
     {
       "id": "create-issue",
       "file": "create-issue.md",
-      "description": "Genera un Issue de GitHub bien estructurado desde una descripción manual",
+      "description": "Genera un Issue de GitHub bien estructurado desde una descripcion manual",
       "tags": ["git", "github", "issue", "documentation"],
       "slashCommand": "/create-issue"
     },
     {
       "id": "detect-issues",
       "file": "detect-issues.md",
-      "description": "Analiza el repositorio y detecta Issues automáticamente (bugs, features, tareas)",
+      "description": "Analiza el repositorio y detecta Issues automaticamente: bugs, features y tareas",
       "tags": ["git", "github", "issues", "automation", "analysis"],
       "slashCommand": "/detect-issues"
     },

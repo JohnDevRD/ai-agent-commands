@@ -1,8 +1,8 @@
 {
   "name": "testing",
-  "displayName": "Testing & QA",
+  "displayName": "Testing y QA",
   "description": "Comandos para generar, ejecutar y analizar pruebas automatizadas",
   "version": "0.0.0",
-  "icon": "🧪",
+  "icon": "testing",
   "commands": []
 }
