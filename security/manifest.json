@@ -1,0 +1,8 @@
+{
+  "name": "security",
+  "displayName": "Security",
+  "description": "Comandos para auditorías de seguridad y análisis de vulnerabilidades",
+  "version": "0.0.0",
+  "icon": "🔒",
+  "commands": []
+}

@@ -1,0 +1,8 @@
+{
+  "name": "database",
+  "displayName": "Database",
+  "description": "Comandos para trabajar con bases de datos: migraciones, queries, schemas",
+  "version": "0.0.0",
+  "icon": "🗄️",
+  "commands": []
+}
