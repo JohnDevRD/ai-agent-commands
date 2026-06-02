@@ -9,7 +9,7 @@
 set -e
 
 # ── Configuración ──
-REPO_URL="https://github.com/GalipoteElDuro/ai-agent-commands"
+REPO_URL="https://github.com/JohnDevRD/ai-agent-commands"
 REPO_BRANCH="main"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CACHE_DIR="${HOME}/.cache/ai-agent-commands"

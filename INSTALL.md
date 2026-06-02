@@ -10,10 +10,10 @@ Elige comandos específicos o categorías completas desde un menú interactivo.
 
 ```bash
 # Descargar y ejecutar
-curl -fsSL https://raw.githubusercontent.com/GalipoteElDuro/ai-agent-commands/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.sh | bash
 
 # O clonar el repo y ejecutar localmente
-git clone https://github.com/GalipoteElDuro/ai-agent-commands.git
+git clone https://github.com/JohnDevRD/ai-agent-commands.git
 cd ai-agent-commands
 chmod +x install.sh
 ./install.sh
@@ -23,10 +23,10 @@ chmod +x install.sh
 
 ```powershell
 # Descargar y ejecutar
-iwr -useb https://raw.githubusercontent.com/GalipoteElDuro/ai-agent-commands/main/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.ps1 | iex
 
 # O clonar el repo y ejecutar localmente
-git clone https://github.com/GalipoteElDuro/ai-agent-commands.git
+git clone https://github.com/JohnDevRD/ai-agent-commands.git
 cd ai-agent-commands
 .\install.ps1
 ```
@@ -111,7 +111,7 @@ Si quieres mantener los comandos actualizados en tu proyecto:
 
 ```bash
 # Agregar como submódulo
-git submodule add https://github.com/GalipoteElDuro/ai-agent-commands.git .ai-commands
+git submodule add https://github.com/JohnDevRD/ai-agent-commands.git .ai-commands
 
 # Crear symlinks a las categorías que quieras
 mkdir -p .opencode/commands
@@ -195,7 +195,7 @@ git submodule update --remote
 Si estás detrás de un proxy o firewall, descarga el repo manualmente:
 
 ```bash
-git clone https://github.com/GalipoteElDuro/ai-agent-commands.git
+git clone https://github.com/JohnDevRD/ai-agent-commands.git
 cd ai-agent-commands
 ./install.sh   # Detectará que ya tienes el repo local
 ```
@@ -208,4 +208,4 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 ## 💬 ¿Más ayuda?
 
-Abre un [Issue](https://github.com/GalipoteElDuro/ai-agent-commands/issues) 🚀
+Abre un [Issue](https://github.com/JohnDevRD/ai-agent-commands/issues) 🚀

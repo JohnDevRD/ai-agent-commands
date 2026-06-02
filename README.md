@@ -30,13 +30,13 @@ Cada comando es un archivo `.md` con **frontmatter YAML** que define instruccion
 ### Linux / macOS / WSL / Git Bash
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/GalipoteElDuro/ai-agent-commands/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.sh | bash
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/GalipoteElDuro/ai-agent-commands/main/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.ps1 | iex
 ```
 
 El instalador te guiará con un menú interactivo para elegir:

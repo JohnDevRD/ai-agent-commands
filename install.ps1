@@ -9,7 +9,7 @@
 $ErrorActionPreference = "Stop"
 
 # ── Configuración ──
-$RepoUrl = "https://github.com/GalipoteElDuro/ai-agent-commands"
+$RepoUrl = "https://github.com/JohnDevRD/ai-agent-commands"
 $RepoBranch = "main"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $CacheDir = Join-Path $env:USERPROFILE ".cache\ai-agent-commands"
