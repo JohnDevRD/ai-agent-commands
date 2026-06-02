@@ -17,46 +17,15 @@ Cada comando es un archivo `.md` con **frontmatter YAML** que define instruccion
 - 📦 **Modular** — instala solo los comandos que uses
 - 🏷️ **Organizado por categoría** — Git, DevOps, Testing, etc.
 - 🔌 **Multi-agente** — compatible con OpenCode, Claude Code, Cline, Cursor
-- 🆓 **Open source** —贡献 bienvenidas
+- 🆓 **Open source** — contribuciones bienvenidas
 - 📚 **Documentado** — cada comando tiene frontmatter + descripción
 - 🚀 **Escalable** — agregar nuevos comandos es muy simple
 
 ## 📋 Comandos disponibles
 
 ### 🔀 Git & GitHub (`git/`)
+
 | Comando | Descripción |
-## 🚀 Instalación rápida
-
-### Linux / macOS / WSL / Git Bash
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.sh | bash
-```
-
-### Windows (PowerShell)
-
-```powershell
-iwr -useb https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.ps1 | iex
-```
-
-El instalador te guiará con un menú interactivo para elegir:
-- 🎯 Destino (proyecto o global)
-- 📦 Categoría completa o comandos específicos
-- 🔄 Sobrescribir versiones existentes
-
-Ver [INSTALL.md](INSTALL.md) para más opciones de instalación (cópia manual, submódulo Git, etc.).
-
-### Copia manual (alternativa rápida)
-
-```bash
-# OpenCode - Proyecto
-mkdir -p .opencode/commands
-cp git/*.md .opencode/commands/
-
-# OpenCode - Global
-mkdir -p ~/.config/opencode/commands
-cp git/*.md ~/.config/opencode/commands/
-```
 |---------|-------------|
 | `/gen-commit` | Genera commit messages profesionales (Conventional Commits) |
 | `/create-pr` | Genera Pull Requests completos y listos para publicar |
@@ -65,6 +34,7 @@ cp git/*.md ~/.config/opencode/commands/
 | `/create-branch` | Genera nombres de rama desde Issues de GitHub |
 
 ### 🚀 DevOps & Infrastructure (`devops/`)
+
 | Comando | Descripción |
 |---------|-------------|
 | `/gen-docker` | Analiza un proyecto y genera Dockerfiles + docker-compose optimizados |
@@ -87,26 +57,110 @@ _Próximamente..._
 ### 🔌 API & REST (`api/`)
 _Próximamente..._
 
-### 🔒 Security (`security/`)
-_Próximamente..._
 
-## 🚀 Instalación
+## 🚀 Instalación rápida
 
-### Opción 1: Copia manual (rápida)
+### Opción 1: Instalador interactivo (recomendado)
+
+**Linux / macOS / WSL / Git Bash:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.sh | bash
+```
+
+**Windows (PowerShell):**
+
+```powershell
+iwr -useb https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.ps1 | iex
+```
+
+El instalador te guiará con un menú interactivo para elegir:
+
+- 🎯 Destino (proyecto o global)
+- 📦 Categoría completa o comandos específicos
+- 🔄 Sobrescribir versiones existentes
+
+Verás algo como:
+
+```
+╔════════════════════════════════════════════╗
+║  🤖 AI Agent Commands - Instalador       ║
+╚════════════════════════════════════════════╝
+
+── Destino de instalación ──
+  1) Proyecto actual (./.opencode/commands/)
+  2) Global del usuario (~/.config/opencode/commands/)
+  3) Personalizado
+Elige una opción [1]: 1
+
+── Categorías disponibles ──
+  1) Git & GitHub (5 comandos)
+  2) DevOps & Infrastructure (1 comando)
+  3) Testing & QA (0 comandos)
+  ...
+  all) Instalar todo
+  q) Salir
+Selecciona categoría, 'all' o 'q' [1]: 1
+```
+
+### Opción 2: Copia manual (rápida)
 
 Copia los archivos `.md` de la categoría que te interese directamente a la carpeta de comandos de tu agente:
 
 ```bash
-# Para OpenCode (proyecto)
+# OpenCode - Proyecto
 mkdir -p .opencode/commands
 cp git/*.md .opencode/commands/
 
-# Para OpenCode (global)
+# OpenCode - Global
 mkdir -p ~/.config/opencode/commands
 cp git/*.md ~/.config/opencode/commands/
 
-# Para Claude Code (proyecto)
+# Claude Code - Proyecto
+mkdir -p .claude/commands
 cp git/*.md .claude/commands/
+
+# Cline (VSCode)
+mkdir -p .clinerules/commands
+cp git/*.md .clinerules/commands/
+
+# Cursor
+mkdir -p .cursor/commands
+cp git/*.md .cursor/commands/
+```
+
+### Opción 3: Como submódulo Git (para mantener actualizado)
+
+```bash
+# Agregar como submódulo
+git submodule add https://github.com/JohnDevRD/ai-agent-commands.git .ai-commands
+
+# Crear symlinks a las categorías que quieras
+mkdir -p .opencode/commands
+ln -s ../../.ai-commands/git/gen-commit.md .opencode/commands/
+ln -s ../../.ai-commands/git/create-pr.md .opencode/commands/
+
+# Para actualizar
+git submodule update --remote
+```
+
+Ver [INSTALL.md](INSTALL.md) para más detalles y solución de problemas.
+
+## 🔧 Uso
+
+Una vez instalados, los comandos están disponibles dentro de tu agente de IA:
+
+```
+> /gen-commit
+
+# El agente analiza el git diff y genera un commit message profesional
+
+> /gen-docker
+
+# El agente analiza tu proyecto y genera Dockerfile + docker-compose
+```
+
+
 ## 📁 Estructura del repositorio
 
 ```
@@ -140,75 +194,6 @@ ai-agent-commands/
 └── 📄 .gitignore
 ```
 
-# Para Cline (VSCode)
-cp git/*.md .clinerules/commands/
-```
-
-### Opción 2: Instalador interactivo (próximamente)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/tu-usuario/ai-agent-commands/main/install.sh | bash
-```
-
-Verás un menú como:
-
-```
-╔════════════════════════════════════════════╗
-║  🤖 AI Agent Commands - Instalador       ║
-╚════════════════════════════════════════════╝
-
-Categorías disponibles:
-  ▶ 1. Git & GitHub        (5 comandos)
-  ▶ 2. DevOps              (1 comando)
-  ...
-
-¿Qué categoría quieres instalar? [1-9, all, q]: 1
-```
-
-## 🔧 Uso
-
-Una vez instalados, los comandos están disponibles dentro de tu agente de IA:
-
-```
-> /gen-commit
-
-# El agente analiza el git diff y genera un commit message profesional
-
-> /gen-docker
-
-# El agente analiza tu proyecto y genera Dockerfile + docker-compose
-```
-
-## 📁 Estructura del repositorio
-
-```
-ai-agent-commands/
-├── 📂 git/              # Git & GitHub (5 comandos)
-│   ├── gen-commit.md
-│   ├── create-pr.md
-│   ├── create-issue.md
-│   ├── detect-issues.md
-│   ├── create-branch.md
-│   └── manifest.json
-│
-├── 📂 devops/           # DevOps & Infrastructure (1 comando)
-│   ├── gen-docker.md
-│   └── manifest.json
-│
-├── 📂 testing/          # Testing & QA
-├── 📂 docs/             # Documentation
-├── 📂 refactor/         # Refactoring
-├── 📂 review/           # Code Review
-├── 📂 database/         # Database
-├── 📂 api/              # API & REST
-├── 📂 security/         # Security
-│
-├── 📄 README.md
-├── 📄 LICENSE
-├── 📄 CONTRIBUTING.md
-└── 📄 .gitignore
-```
-
 ## 📝 Convención de nomenclatura
 
 Todos los comandos siguen el patrón **`<verbo>-<objeto>`**:
@@ -218,6 +203,7 @@ Todos los comandos siguen el patrón **`<verbo>-<objeto>`**:
 - ✅ `detect-issues` (no `cmt`)
 
 ### Reglas:
+
 1. Solo minúsculas, sin tildes
 2. Empezar con verbo (`gen`, `create`, `detect`, `review`, `explain`...)
 3. Máximo 3 palabras separadas por guiones
@@ -250,3 +236,5 @@ Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE) para más detal
 ---
 
 **¿Encontraste útil este catálogo?** ⭐ Dale una estrella al repo y compártelo con tu equipo.
+### 🔒 Security (`security/`)
+_Próximamente..._
