@@ -25,6 +25,38 @@ Cada comando es un archivo `.md` con **frontmatter YAML** que define instruccion
 
 ### 🔀 Git & GitHub (`git/`)
 | Comando | Descripción |
+## 🚀 Instalación rápida
+
+### Linux / macOS / WSL / Git Bash
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/GalipoteElDuro/ai-agent-commands/main/install.sh | bash
+```
+
+### Windows (PowerShell)
+
+```powershell
+iwr -useb https://raw.githubusercontent.com/GalipoteElDuro/ai-agent-commands/main/install.ps1 | iex
+```
+
+El instalador te guiará con un menú interactivo para elegir:
+- 🎯 Destino (proyecto o global)
+- 📦 Categoría completa o comandos específicos
+- 🔄 Sobrescribir versiones existentes
+
+Ver [INSTALL.md](INSTALL.md) para más opciones de instalación (cópia manual, submódulo Git, etc.).
+
+### Copia manual (alternativa rápida)
+
+```bash
+# OpenCode - Proyecto
+mkdir -p .opencode/commands
+cp git/*.md .opencode/commands/
+
+# OpenCode - Global
+mkdir -p ~/.config/opencode/commands
+cp git/*.md ~/.config/opencode/commands/
+```
 |---------|-------------|
 | `/gen-commit` | Genera commit messages profesionales (Conventional Commits) |
 | `/create-pr` | Genera Pull Requests completos y listos para publicar |
@@ -75,6 +107,38 @@ cp git/*.md ~/.config/opencode/commands/
 
 # Para Claude Code (proyecto)
 cp git/*.md .claude/commands/
+## 📁 Estructura del repositorio
+
+```
+ai-agent-commands/
+├── 📂 git/              # Git & GitHub (5 comandos)
+│   ├── gen-commit.md
+│   ├── create-pr.md
+│   ├── create-issue.md
+│   ├── detect-issues.md
+│   ├── create-branch.md
+│   └── manifest.json
+│
+├── 📂 devops/           # DevOps & Infrastructure (1 comando)
+│   ├── gen-docker.md
+│   └── manifest.json
+│
+├── 📂 testing/          # Testing & QA
+├── 📂 docs/             # Documentation
+├── 📂 refactor/         # Refactoring
+├── 📂 review/           # Code Review
+├── 📂 database/         # Database
+├── 📂 api/              # API & REST
+├── 📂 security/         # Security
+│
+├── 📄 install.sh        # Instalador Linux/macOS/WSL
+├── 📄 install.ps1       # Instalador Windows PowerShell
+├── 📄 INSTALL.md        # Guía detallada de instalación
+├── 📄 README.md
+├── 📄 LICENSE
+├── 📄 CONTRIBUTING.md
+└── 📄 .gitignore
+```
 
 # Para Cline (VSCode)
 cp git/*.md .clinerules/commands/
