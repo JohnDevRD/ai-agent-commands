@@ -167,6 +167,8 @@ install_command() {
     fi
 
     cp "$source" "$INSTALL_DIR/$cmd_file"
+    print_success "Instalado: $cmd_file"
+}
 
 # ── Flujo principal ──
 main() {
@@ -252,5 +254,4 @@ main() {
 
 main "$@"
 
-    print_success "Instalado: $cmd_file"
-}
+
