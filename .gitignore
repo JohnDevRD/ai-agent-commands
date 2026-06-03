@@ -64,3 +64,4 @@ htmlcov/
 # Project-specific
 .tmp/
 .cache/
+.codegraph/
