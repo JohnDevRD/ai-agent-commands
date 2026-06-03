@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
 # ai-agent-commands - Instalador interactivo
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
 # Compatible con: Linux, macOS, WSL, Git Bash
 # Uso:
-#   curl -fsSL https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/JohnDevRD/ai-agent-commands/main/install.sh -o install.sh && bash install.sh
 #   ./install.sh
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
 
 set -o pipefail
 
-# ── Configuración ──
+# -- Configuracion --
 REPO_URL="https://github.com/JohnDevRD/ai-agent-commands"
 REPO_BRANCH="main"
 VERSION="1.0.0"
@@ -21,7 +21,7 @@ CACHE_DIR="${HOME}/.cache/ai-agent-commands"
 INSTALLED_COUNT=0
 INSTALLED_FILES=()
 
-# ── Colores ──
+# -- Colores --
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -30,31 +30,30 @@ DARK_CYAN='\033[0;36m'
 WHITE='\033[1;37m'
 GRAY='\033[0;37m'
 DARK_GRAY='\033[0;90m'
-BOLD='\033[1m'
 NC='\033[0m'
 
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
 # FUNCIONES DE UI
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
 
 print_blank() { echo ""; }
 
 print_banner() {
-    local width=66
+    local width=62
     print_blank
-    echo -e "${DARK_CYAN}$(printf '═%.0s' $(seq 1 $width))${NC}"
+    echo -e "${DARK_CYAN}$(printf '=%.0s' $(seq 1 $width))${NC}"
     echo ""
-    echo -e "${CYAN}${BOLD}    ___    ____   ___                    __${NC}"
-    echo -e "${CYAN}${BOLD}   /   |  /  _/  /   | ____ ____  ____  / /_${NC}"
-    echo -e "${CYAN}${BOLD}  / /| |  / /   / /| |/ __ \`/ _ \/ __ \/ __/${NC}"
-    echo -e "${CYAN}${BOLD} / ___ |_/ /   / ___ / /_/ /  __/ / / / /_${NC}"
-    echo -e "${CYAN}${BOLD}/_/  |_/___/  /_/  |_\__, /\___/_/ /_/\__/${NC}"
-    echo -e "${DARK_CYAN}${BOLD}                    /____/  Commands${NC}"
+    echo -e "${CYAN}    ___    ____   ___                    __${NC}"
+    echo -e "${CYAN}   /   |  /  _/  /   | ____ ____  ____  / /_${NC}"
+    echo -e "${CYAN}  / /| |  / /   / /| |/ __ \`/ _ \/ __ \/ __/${NC}"
+    echo -e "${CYAN} / ___ |_/ /   / ___ / /_/ /  __/ / / / /_${NC}"
+    echo -e "${CYAN}/_/  |_/___/  /_/  |_\__, /\___/_/ /_/\__/${NC}"
+    echo -e "${DARK_CYAN}                    /____/  Commands${NC}"
     echo ""
     echo -e "  ${WHITE}Instalador Interactivo  v${VERSION}${NC}"
     echo -e "  ${DARK_GRAY}${REPO_URL}${NC}"
     echo ""
-    echo -e "${DARK_CYAN}$(printf '═%.0s' $(seq 1 $width))${NC}"
+    echo -e "${DARK_CYAN}$(printf '=%.0s' $(seq 1 $width))${NC}"
     print_blank
 }
 
@@ -68,13 +67,13 @@ print_section_header() {
     echo -e "${DARK_GRAY}${line}${NC}"
 }
 
-print_success() { echo -e "  ${GREEN}[+]${NC} ${WHITE}$1${NC}"; }
-print_error()   { echo -e "  ${RED}[x]${NC} ${WHITE}$1${NC}"; }
-print_warning() { echo -e "  ${YELLOW}[!]${NC} ${WHITE}$1${NC}"; }
-print_info()    { echo -e "  ${CYAN}[i]${NC} ${GRAY}$1${NC}"; }
-print_step()    { echo -e "  ${DARK_CYAN}[>]${NC} ${WHITE}$1${NC}"; }
+print_success() { printf "  ${GREEN}[+]${NC} ${WHITE}%s${NC}\n" "$1"; }
+print_error()   { printf "  ${RED}[x]${NC} ${WHITE}%s${NC}\n" "$1"; }
+print_warning() { printf "  ${YELLOW}[!]${NC} ${WHITE}%s${NC}\n" "$1"; }
+print_info()    { printf "  ${CYAN}[i]${NC} ${GRAY}%s${NC}\n" "$1"; }
+print_step()    { printf "  ${DARK_CYAN}[>]${NC} ${WHITE}%s${NC}\n" "$1"; }
 
-prompt() {
+prompt_input() {
     local var_name="$1"
     local prompt_text="$2"
     local default="$3"
@@ -93,54 +92,76 @@ prompt() {
     fi
 }
 
-# ═══════════════════════════════════════════════════════════════════
-# DESTINO DE INSTALACIÓN
-# ═══════════════════════════════════════════════════════════════════
+show_spinner() {
+    local message="$1"
+    local pid="$2"
+    local frames=('|' '/' '-' '\')
+    local i=0
+
+    echo ""
+    while kill -0 "$pid" 2>/dev/null; do
+        local frame="${frames[$((i % 4))]}"
+        printf "\r  ${CYAN}[%s]${NC} ${WHITE}%s...${NC}" "$frame" "$message"
+        sleep 0.12
+        ((i++))
+    done
+    printf "\r  ${GREEN}[+]${NC} ${WHITE}%s... Listo.   ${NC}\n" "$message"
+}
+
+# =============================================================================
+# DESTINO DE INSTALACION
+# =============================================================================
 
 detect_install_target() {
-    print_section_header "Destino de instalación"
+    print_section_header "Destino de instalacion"
+
     echo ""
+    printf "  ${YELLOW}[1]${NC}  ${WHITE}%-26s${NC} ${DARK_GRAY}./.opencode/commands/${NC}\n" "Proyecto actual"
+    printf "  ${YELLOW}[2]${NC}  ${WHITE}%-26s${NC} ${DARK_GRAY}~/.config/opencode/commands/${NC}\n" "Global del usuario"
+    printf "  ${YELLOW}[3]${NC}  ${WHITE}Ruta personalizada${NC}\n"
 
-    echo -e "  ${YELLOW}[1]${NC}  ${WHITE}Proyecto actual         ${DARK_GRAY}./.opencode/commands/${NC}"
-    echo -e "  ${YELLOW}[2]${NC}  ${WHITE}Global del usuario      ${DARK_GRAY}~/.config/opencode/commands/${NC}"
-    echo -e "  ${YELLOW}[3]${NC}  ${WHITE}Ruta personalizada${NC}"
+    prompt_input "choice" "Elegir una opcion" "1"
 
-    prompt TARGET_CHOICE "Elige una opción" "1"
-
-    case "$TARGET_CHOICE" in
+    case "$choice" in
         1) INSTALL_DIR="$(pwd)/.opencode/commands" ;;
         2) INSTALL_DIR="${HOME}/.config/opencode/commands" ;;
-        3) prompt INSTALL_DIR "Ruta completa de destino" "" ;;
-        *) print_error "Opción inválida. Saliendo."; exit 1 ;;
+        3) prompt_input "INSTALL_DIR" "Ruta completa de destino" "" ;;
+        *)
+            print_error "Opcion invalida. Saliendo."
+            exit 1
+            ;;
     esac
 
-    echo ""
+    print_blank
     print_info "Destino: $INSTALL_DIR"
 }
 
-# ═══════════════════════════════════════════════════════════════════
-# CATÁLOGO
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
+# CATALOGO
+# =============================================================================
 
 fetch_catalog() {
-    print_section_header "Obteniendo catálogo"
-    echo ""
+    print_section_header "Obteniendo catalogo"
+    print_blank
 
     if [ -d "$CACHE_DIR/.git" ]; then
-        print_step "Actualizando catálogo en caché"
-        cd "$CACHE_DIR"
-        if git pull --quiet origin "$REPO_BRANCH" 2>/dev/null; then
-            print_success "Catálogo actualizado correctamente."
-        else
-            print_warning "No se pudo actualizar; se usará la versión local existente."
-        fi
+        print_step "Actualizando catalogo en cache"
+        (cd "$CACHE_DIR" && git pull --quiet origin "$REPO_BRANCH" 2>/dev/null) &
+        local pid=$!
+        show_spinner "Actualizando catalogo en cache" "$pid"
+        wait "$pid" && \
+            print_success "Catalogo actualizado correctamente." || \
+            print_warning "No se pudo actualizar el cache; se usara la version local existente."
     else
-        print_step "Clonando catálogo por primera vez"
+        print_step "Clonando catalogo por primera vez"
         mkdir -p "$(dirname "$CACHE_DIR")"
-        if git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$CACHE_DIR" 2>/dev/null; then
-            print_success "Catálogo clonado correctamente."
+        (git clone --depth 1 --branch "$REPO_BRANCH" "$REPO_URL" "$CACHE_DIR" 2>/dev/null) &
+        local pid=$!
+        show_spinner "Clonando catalogo" "$pid"
+        if wait "$pid"; then
+            print_success "Catalogo clonado correctamente."
         else
-            print_error "No se pudo clonar el repositorio. Verifica tu conexión y la instalación de git."
+            print_error "No se pudo clonar el repositorio. Verifica tu conexion y la instalacion de git."
             if [ -d "$SCRIPT_DIR/.git" ]; then
                 print_warning "Usando archivos locales del repositorio como respaldo."
                 CACHE_DIR="$SCRIPT_DIR"
@@ -151,14 +172,22 @@ fetch_catalog() {
     fi
 
     if [ ! -d "$CACHE_DIR" ]; then
-        print_error "No se encontró el catálogo en: $CACHE_DIR"
+        print_error "No se encontro el catalogo en: $CACHE_DIR"
         exit 1
     fi
 }
 
-# ═══════════════════════════════════════════════════════════════════
-# HELPERS DEL CATÁLOGO
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
+# HELPERS DEL CATALOGO
+# =============================================================================
+
+# Requiere jq
+require_jq() {
+    if ! command -v jq &>/dev/null; then
+        print_error "Se requiere 'jq' para leer el catalogo. Instálalo con: apt install jq / brew install jq"
+        exit 1
+    fi
+}
 
 load_categories() {
     CATEGORIES=()
@@ -167,52 +196,62 @@ load_categories() {
             CATEGORIES+=("$(basename "$dir")")
         fi
     done
+    IFS=$'\n' CATEGORIES=($(printf '%s\n' "${CATEGORIES[@]}" | sort)); unset IFS
 }
 
 show_categories() {
-    print_section_header "Categorías disponibles"
-    echo ""
+    print_section_header "Categorias disponibles"
+    print_blank
 
     local i=1
     for cat in "${CATEGORIES[@]}"; do
         local manifest="$CACHE_DIR/$cat/manifest.json"
-        local display
-        display=$(grep -m1 '"displayName"' "$manifest" | sed 's/.*: "\(.*\)",*/\1/')
-        local count
-        count=$(grep -c '"id":' "$manifest" 2>/dev/null || echo "0")
-        local label
+        local display count label
+
+        display=$(jq -r '.displayName // empty' "$manifest" 2>/dev/null)
+        count=$(jq '.commands | length' "$manifest" 2>/dev/null || echo "0")
         label=$(printf '%-30s' "$display")
 
-        echo -e "  ${DARK_GRAY}[${NC}${YELLOW}${i}${NC}${DARK_GRAY}]${NC} ${WHITE}${label}${NC} ${DARK_GRAY}${count} comando(s)${NC}"
+        printf "  ${DARK_GRAY}[${NC}${YELLOW}%s${NC}${DARK_GRAY}]${NC} ${WHITE}%s${NC} ${DARK_GRAY}%s comando(s)${NC}\n" \
+               "$i" "$label" "$count"
         ((i++))
     done
 
     echo ""
-    echo -e "  ${DARK_GRAY}[${NC}${CYAN}todo${NC}${DARK_GRAY}]${NC}  ${WHITE}Instalar todas las categorías${NC}"
-    echo -e "  ${DARK_GRAY}[${NC}${RED}q${NC}${DARK_GRAY}]${NC}     ${WHITE}Salir${NC}"
+    printf "  ${DARK_GRAY}[${NC}${CYAN}todo${NC}${DARK_GRAY}]${NC}  ${WHITE}Instalar todas las categorias${NC}\n"
+    printf "  ${DARK_GRAY}[${NC}${RED}q${NC}${DARK_GRAY}]${NC}     ${WHITE}Salir${NC}\n"
 }
 
 show_commands_in_category() {
     local category="$1"
     local manifest="$CACHE_DIR/$category/manifest.json"
     local display
-    display=$(grep -m1 '"displayName"' "$manifest" | sed 's/.*: "\(.*\)",*/\1/')
 
+    display=$(jq -r '.displayName // empty' "$manifest" 2>/dev/null)
     print_section_header "Comandos en: ${display}"
-    echo ""
+    print_blank
 
     local i=1
-    local current_id=""
     while IFS= read -r line; do
-        if [[ "$line" =~ \"id\":\ \"([^\"]+)\" ]]; then
-            current_id="${BASH_REMATCH[1]}"
-        elif [[ "$line" =~ \"description\":\ \"([^\"]+)\" ]] && [ -n "$current_id" ]; then
-            local desc="${BASH_REMATCH[1]}"
-            echo -e "  ${DARK_GRAY}[${NC}${YELLOW}${i}${NC}${DARK_GRAY}]${NC} ${WHITE}${current_id}${NC}  ${DARK_GRAY}${desc}${NC}"
-            ((i++))
-            current_id=""
-        fi
-    done < "$manifest"
+        local id desc
+        id=$(echo "$line" | jq -r '.id // empty')
+        desc=$(echo "$line" | jq -r '.description // empty')
+        printf "  ${DARK_GRAY}[${NC}${YELLOW}%s${NC}${DARK_GRAY}]${NC} ${WHITE}%-30s${NC} ${DARK_GRAY}%s${NC}\n" \
+               "$i" "$id" "$desc"
+        ((i++))
+    done < <(jq -c '.commands[]' "$manifest" 2>/dev/null)
+}
+
+get_commands_from_category() {
+    local category="$1"
+    local manifest="$CACHE_DIR/$category/manifest.json"
+    jq -r '.commands[].file' "$manifest" 2>/dev/null
+}
+
+get_command_count() {
+    local category="$1"
+    local manifest="$CACHE_DIR/$category/manifest.json"
+    jq '.commands | length' "$manifest" 2>/dev/null || echo 0
 }
 
 install_command() {
@@ -235,54 +274,52 @@ install_command() {
     fi
 
     if ! cp "$source" "$INSTALL_DIR/$cmd_file"; then
-        print_error "Falló la copia de: $cmd_file"
+        print_error "Fallo la copia de: $cmd_file"
         return 1
     fi
 
     print_success "Instalado: $cmd_file"
-
     INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
     INSTALLED_FILES+=("$cmd_file")
 }
 
 install_all_categories() {
-    print_section_header "Instalando todas las categorías"
+    print_section_header "Instalando todas las categorias"
     for cat in "${CATEGORIES[@]}"; do
-        for file in "$CACHE_DIR/$cat"/*.md; do
-            [ -f "$file" ] && install_command "$cat" "$(basename "$file")"
-        done
+        while IFS= read -r file; do
+            [ -n "$file" ] && install_command "$cat" "$file"
+        done < <(get_commands_from_category "$cat")
     done
 }
 
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
 # RESUMEN FINAL
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
 
 print_summary() {
-    local width=66
-    echo ""
-    echo -e "${DARK_CYAN}$(printf '═%.0s' $(seq 1 $width))${NC}"
-    echo -e "  ${WHITE}RESUMEN DE INSTALACIÓN${NC}"
-    echo -e "${DARK_CYAN}$(printf '═%.0s' $(seq 1 $width))${NC}"
-    echo ""
+    local width=62
+    print_blank
+    echo -e "${DARK_CYAN}$(printf '=%.0s' $(seq 1 $width))${NC}"
+    echo -e "  ${WHITE}RESUMEN DE INSTALACION${NC}"
+    echo -e "${DARK_CYAN}$(printf '=%.0s' $(seq 1 $width))${NC}"
+    print_blank
 
     print_success "Directorio: $INSTALL_DIR"
     print_info    "Total instalados: ${INSTALLED_COUNT} comando(s)"
 
     if [ "${#INSTALLED_FILES[@]}" -gt 0 ]; then
-        echo ""
+        print_blank
         echo -e "  ${WHITE}Comandos disponibles en tu agente IA:${NC}"
         echo -e "  ${DARK_GRAY}$(printf '─%.0s' $(seq 1 40))${NC}"
 
-        # Ordenar y mostrar
-        IFS=$'\n' sorted=($(sort <<<"${INSTALLED_FILES[*]}")); unset IFS
+        IFS=$'\n' sorted=($(printf '%s\n' "${INSTALLED_FILES[@]}" | sort)); unset IFS
         for f in "${sorted[@]}"; do
             local name="${f%.md}"
-            echo -e "    ${DARK_CYAN}/${NC}${WHITE}${name}${NC}"
+            printf "    ${DARK_CYAN}/${NC}${WHITE}%s${NC}\n" "$name"
         done
 
     elif [ -d "$INSTALL_DIR" ]; then
-        echo ""
+        print_blank
         echo -e "  ${WHITE}Comandos disponibles en tu agente IA:${NC}"
         echo -e "  ${DARK_GRAY}$(printf '─%.0s' $(seq 1 40))${NC}"
 
@@ -290,40 +327,43 @@ print_summary() {
             [ -f "$f" ] || continue
             local name
             name=$(basename "$f" .md)
-            echo -e "    ${DARK_CYAN}/${NC}${WHITE}${name}${NC}"
+            printf "    ${DARK_CYAN}/${NC}${WHITE}%s${NC}\n" "$name"
         done
     fi
 
-    echo ""
-    echo -e "${DARK_CYAN}$(printf '═%.0s' $(seq 1 $width))${NC}"
+    print_blank
+    echo -e "${DARK_CYAN}$(printf '=%.0s' $(seq 1 $width))${NC}"
     echo -e "  ${GREEN}Listo. Ya puedes usar los comandos en tu agente IA.${NC}"
-    echo -e "${DARK_CYAN}$(printf '═%.0s' $(seq 1 $width))${NC}"
-    echo ""
+    echo -e "${DARK_CYAN}$(printf '=%.0s' $(seq 1 $width))${NC}"
+    print_blank
 }
 
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
 # FLUJO PRINCIPAL
-# ═══════════════════════════════════════════════════════════════════
+# =============================================================================
 
 main() {
     print_banner
+    require_jq
     detect_install_target
     fetch_catalog
     load_categories
 
     if [ "${#CATEGORIES[@]}" -eq 0 ]; then
-        print_error "No se encontraron categorías en el catálogo."
+        print_error "No se encontraron categorias en el catalogo."
         exit 1
     fi
 
+    local stop_installing=false
+
     while true; do
-        echo ""
+        print_blank
         show_categories
-        echo ""
-        prompt CHOICE "Selecciona categoría, 'todo' o 'q'" ""
+        print_blank
+        prompt_input "CHOICE" "Selecciona categoria, 'todo' o 'q'" ""
 
         if [ -z "$CHOICE" ]; then
-            print_info "No se seleccionó ninguna opción. Saliendo..."
+            print_info "No se selecciono ninguna opcion. Saliendo..."
             break
         fi
 
@@ -334,48 +374,55 @@ main() {
                 ;;
             todo|all)
                 install_all_categories
-                break
+                stop_installing=true
                 ;;
             *)
                 if ! [[ "$CHOICE" =~ ^[0-9]+$ ]] || \
                    [ "$CHOICE" -lt 1 ] || \
                    [ "$CHOICE" -gt "${#CATEGORIES[@]}" ]; then
-                    print_error "Opción inválida. Ingresa un número del 1 al ${#CATEGORIES[@]}, 'todo' o 'q'."
+                    print_error "Opcion invalida. Ingresa un numero del 1 al ${#CATEGORIES[@]}, 'todo' o 'q'."
                     continue
                 fi
 
                 local selected_cat="${CATEGORIES[$((CHOICE - 1))]}"
                 show_commands_in_category "$selected_cat"
 
-                echo ""
-                prompt CMD_CHOICE "Selecciona comandos (ej: 1,3,4 o 'todo')" "todo"
+                print_blank
+                prompt_input "CMD_CHOICE" "Selecciona comandos (ej: 1,3,4 o 'todo')" "todo"
+
+                local total_cmds
+                total_cmds=$(get_command_count "$selected_cat")
 
                 if [[ "${CMD_CHOICE,,}" =~ ^(todo|all)$ ]]; then
-                    for file in "$CACHE_DIR/$selected_cat"/*.md; do
-                        [ -f "$file" ] && install_command "$selected_cat" "$(basename "$file")"
-                    done
+                    while IFS= read -r file; do
+                        [ -n "$file" ] && install_command "$selected_cat" "$file"
+                    done < <(get_commands_from_category "$selected_cat")
                 else
                     IFS=',' read -ra SELECTED <<< "$CMD_CHOICE"
                     local i=1
-                    for file in "$CACHE_DIR/$selected_cat"/*.md; do
-                        [ -f "$file" ] || continue
+                    while IFS= read -r file; do
+                        [ -n "$file" ] || continue
                         for sel in "${SELECTED[@]}"; do
                             sel="${sel// /}"
-                            if [ "$i" -eq "$sel" ]; then
-                                install_command "$selected_cat" "$(basename "$file")"
+                            if [[ "$sel" =~ ^[0-9]+$ ]] && [ "$i" -eq "$sel" ]; then
+                                install_command "$selected_cat" "$file"
                             fi
                         done
                         ((i++))
-                    done
+                    done < <(get_commands_from_category "$selected_cat")
                 fi
 
-                echo ""
-                prompt CONTINUE "¿Instalar otra categoría? (s/n)" "s"
-                if [[ ! "${CONTINUE,,}" =~ ^[sy] ]]; then
-                    break
+                print_blank
+                prompt_input "CONTINUE_CHOICE" "Instalar otra categoria? (s/n)" "s"
+                if [[ ! "${CONTINUE_CHOICE,,}" =~ ^[sy] ]]; then
+                    stop_installing=true
                 fi
                 ;;
         esac
+
+        if [ "$stop_installing" = true ]; then
+            break
+        fi
     done
 
     print_summary
