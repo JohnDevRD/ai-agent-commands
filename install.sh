@@ -244,8 +244,9 @@ show_commands_in_category() {
 
 get_commands_from_category() {
     local category="$1"
-    local manifest="$CACHE_DIR/$category/manifest.json"
-    jq -r '.commands[].file' "$manifest" 2>/dev/null
+    for file in "$CACHE_DIR/$category"/*.md; do
+        [ -f "$file" ] && basename "$file"
+    done
 }
 
 get_command_count() {
