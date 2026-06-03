@@ -11,10 +11,11 @@
 $ErrorActionPreference = "Stop"
 
 # -- Configuracion --
-$RepoUrl = "https://github.com/JohnDevRD/ai-agent-commands"
+$RepoUrl    = "https://github.com/JohnDevRD/ai-agent-commands"
 $RepoBranch = "main"
+$Version    = "1.0.0"
 $ScriptPath = $MyInvocation.MyCommand.Path
-$ScriptDir = if (-not [string]::IsNullOrWhiteSpace($ScriptPath)) {
+$ScriptDir  = if (-not [string]::IsNullOrWhiteSpace($ScriptPath)) {
     Split-Path -Parent $ScriptPath
 } elseif (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
     $PSScriptRoot
@@ -23,20 +24,104 @@ $ScriptDir = if (-not [string]::IsNullOrWhiteSpace($ScriptPath)) {
 }
 $CacheDir = Join-Path $env:USERPROFILE ".cache\ai-agent-commands"
 
-# -- Funciones de salida --
+# Contador de comandos instalados
+$script:InstalledCount = 0
+$script:InstalledFiles = @()
+
+# =============================================================================
+# FUNCIONES DE UI
+# =============================================================================
+
+function Write-Blank { Write-Host "" }
+
 function Print-Banner {
+    $width = 62
+    Write-Blank
+    Write-Host ("=" * $width) -ForegroundColor DarkCyan
     Write-Host ""
-    Write-Host "================================================" -ForegroundColor Cyan
-    Write-Host "  AI Agent Commands - Instalador" -ForegroundColor Cyan
-    Write-Host "================================================" -ForegroundColor Cyan
+    Write-Host "    ___    ____   ___                    __" -ForegroundColor Cyan
+    Write-Host "   /   |  /  _/  /   | ____ ____  ____  / /_" -ForegroundColor Cyan
+    Write-Host "  / /| |  / /   / /| |/ __ ``/ _ \/ __ \/ __/" -ForegroundColor Cyan
+    Write-Host " / ___ |_/ /   / ___ / /_/ /  __/ / / / /_" -ForegroundColor Cyan
+    Write-Host "/_/  |_/___/  /_/  |_\__, /\___/_/ /_/\__/" -ForegroundColor Cyan
+    Write-Host "                    /____/  Commands" -ForegroundColor DarkCyan
     Write-Host ""
+    Write-Host ("  Instalador Interactivo  v$Version") -ForegroundColor White
+    Write-Host ("  $RepoUrl") -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host ("=" * $width) -ForegroundColor DarkCyan
+    Write-Blank
 }
 
-function Print-Success { param([string]$Message) Write-Host "[OK] $Message" -ForegroundColor Green }
-function Print-Error   { param([string]$Message) Write-Host "[ERROR] $Message" -ForegroundColor Red }
-function Print-Warning { param([string]$Message) Write-Host "[WARN] $Message" -ForegroundColor Yellow }
-function Print-Info    { param([string]$Message) Write-Host "[INFO] $Message" -ForegroundColor Blue }
-function Print-Header  { param([string]$Message) Write-Host ""; Write-Host "-- $Message --" -ForegroundColor Cyan }
+function Print-SectionHeader {
+    param([string]$Title)
+    $line = "-" * 60
+    Write-Blank
+    Write-Host $line -ForegroundColor DarkGray
+    Write-Host "  >> $Title" -ForegroundColor White
+    Write-Host $line -ForegroundColor DarkGray
+}
+
+function Print-Success {
+    param([string]$Message)
+    Write-Host "  [+] " -NoNewline -ForegroundColor Green
+    Write-Host $Message -ForegroundColor White
+}
+
+function Print-Error {
+    param([string]$Message)
+    Write-Host "  [x] " -NoNewline -ForegroundColor Red
+    Write-Host $Message -ForegroundColor White
+}
+
+function Print-Warning {
+    param([string]$Message)
+    Write-Host "  [!] " -NoNewline -ForegroundColor Yellow
+    Write-Host $Message -ForegroundColor White
+}
+
+function Print-Info {
+    param([string]$Message)
+    Write-Host "  [i] " -NoNewline -ForegroundColor Cyan
+    Write-Host $Message -ForegroundColor Gray
+}
+
+function Print-Step {
+    param([string]$Step, [string]$Value = "")
+    Write-Host "  [>] " -NoNewline -ForegroundColor DarkCyan
+    Write-Host $Step -NoNewline -ForegroundColor White
+    if ($Value) {
+        Write-Host "  $Value" -ForegroundColor DarkGray
+    } else {
+        Write-Host ""
+    }
+}
+
+function Show-Spinner {
+    param([string]$Message, [scriptblock]$Action)
+
+    $frames  = @("|", "/", "-", "\")
+    $job     = Start-Job -ScriptBlock $Action
+    $i       = 0
+
+    Write-Host ""
+    while ($job.State -eq "Running") {
+        $frame = $frames[$i % $frames.Length]
+        Write-Host "`r  [$frame] $Message..." -NoNewline -ForegroundColor Cyan
+        Start-Sleep -Milliseconds 120
+        $i++
+    }
+
+    Write-Host "`r  [+] $Message... Listo.   " -ForegroundColor Green
+    $result = Receive-Job $job -ErrorVariable jobErrors
+    Remove-Job $job
+
+    if ($jobErrors) {
+        throw $jobErrors[0]
+    }
+
+    return $result
+}
 
 function Prompt-Input {
     param(
@@ -45,11 +130,21 @@ function Prompt-Input {
         [string]$Variable
     )
 
+    Write-Host ""
     if ($Default) {
-        $value = Read-Host "$Message [$Default]"
+        Write-Host "  " -NoNewline
+        Write-Host $Message -NoNewline -ForegroundColor White
+        Write-Host " [" -NoNewline -ForegroundColor DarkGray
+        Write-Host $Default -NoNewline -ForegroundColor Yellow
+        Write-Host "]" -NoNewline -ForegroundColor DarkGray
+        Write-Host " : " -NoNewline -ForegroundColor DarkGray
+        $value = Read-Host
         if ([string]::IsNullOrWhiteSpace($value)) { $value = $Default }
     } else {
-        $value = Read-Host $Message
+        Write-Host "  " -NoNewline
+        Write-Host $Message -NoNewline -ForegroundColor White
+        Write-Host " : " -NoNewline -ForegroundColor DarkGray
+        $value = Read-Host
     }
 
     Set-Variable -Name $Variable -Value $value -Scope 1
@@ -61,7 +156,7 @@ function Invoke-GitQuiet {
     $previousErrorActionPreference = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     try {
-        $output = & git @Arguments 2>&1
+        $output   = & git @Arguments 2>&1
         $exitCode = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousErrorActionPreference
@@ -72,12 +167,25 @@ function Invoke-GitQuiet {
     }
 }
 
-# -- Destino de instalacion --
+# =============================================================================
+# DESTINO DE INSTALACION
+# =============================================================================
+
 function Detect-InstallTarget {
-    Print-Header "Destino de instalacion"
-    Write-Host "  1) Proyecto actual (./.opencode/commands/)"
-    Write-Host "  2) Global del usuario (~/.config/opencode/commands/)"
-    Write-Host "  3) Ruta personalizada"
+    Print-SectionHeader "Destino de instalacion"
+
+    Write-Host ""
+    Write-Host "  [1]" -NoNewline -ForegroundColor Yellow
+    Write-Host "  Proyecto actual         " -NoNewline -ForegroundColor White
+    Write-Host "./.opencode/commands/" -ForegroundColor DarkGray
+
+    Write-Host "  [2]" -NoNewline -ForegroundColor Yellow
+    Write-Host "  Global del usuario      " -NoNewline -ForegroundColor White
+    Write-Host "~/.config/opencode/commands/" -ForegroundColor DarkGray
+
+    Write-Host "  [3]" -NoNewline -ForegroundColor Yellow
+    Write-Host "  Ruta personalizada" -ForegroundColor White
+
     Prompt-Input "Elegir una opcion" "1" "choice"
 
     switch ($choice) {
@@ -88,33 +196,40 @@ function Detect-InstallTarget {
             $script:InstallDir = $customPath
         }
         default {
-            Print-Error "Opcion invalida"
+            Print-Error "Opcion invalida. Saliendo."
             exit 1
         }
     }
 
-    Print-Info "Destino seleccionado: $InstallDir"
+    Write-Blank
+    Print-Info "Destino: $InstallDir"
 }
 
-# -- Obtener catalogo --
+# =============================================================================
+# CATALOGO
+# =============================================================================
+
 function Fetch-Catalog {
-    Print-Header "Obteniendo catalogo"
+    Print-SectionHeader "Obteniendo catalogo"
+    Write-Blank
 
     if (Test-Path (Join-Path $CacheDir ".git")) {
-        Print-Info "Actualizando catalogo en cache..."
+        Print-Step "Actualizando catalogo en cache"
         Push-Location $CacheDir
         try {
             Invoke-GitQuiet @("pull", "origin", $RepoBranch)
+            Print-Success "Catalogo actualizado correctamente."
         } catch {
-            Print-Warning "No se pudo actualizar el cache; se usara el cache local existente"
+            Print-Warning "No se pudo actualizar el cache; se usara la version local existente."
         } finally {
             Pop-Location
         }
     } else {
-        Print-Info "Clonando catalogo por primera vez..."
+        Print-Step "Clonando catalogo por primera vez"
         try {
             New-Item -ItemType Directory -Path (Split-Path $CacheDir) -Force | Out-Null
             Invoke-GitQuiet @("clone", "--depth", "1", "--branch", $RepoBranch, $RepoUrl, $CacheDir)
+            Print-Success "Catalogo clonado correctamente."
         } catch {
             Print-Error "No se pudo clonar el repositorio. Verifica tu conexion y la instalacion de git."
             if ($_.Exception.Message) {
@@ -130,12 +245,15 @@ function Fetch-Catalog {
     }
 
     if (-not (Test-Path $CacheDir)) {
-        Print-Error "No se encontro el catalogo."
+        Print-Error "No se encontro el catalogo en: $CacheDir"
         exit 1
     }
 }
 
-# -- Ayudantes del catalogo --
+# =============================================================================
+# HELPERS DEL CATALOGO
+# =============================================================================
+
 function Get-Categories {
     $categories = @()
     Get-ChildItem -Path $CacheDir -Directory | Sort-Object Name | ForEach-Object {
@@ -150,29 +268,50 @@ function Get-Categories {
 function Show-Categories {
     param([array]$Categories)
 
-    Print-Header "Categorias disponibles"
+    Print-SectionHeader "Categorias disponibles"
+    Write-Blank
+
     $i = 1
     foreach ($cat in $Categories) {
         $manifest = Join-Path $CacheDir "$cat\manifest.json"
-        $content = Get-Content $manifest -Raw | ConvertFrom-Json
-        $count = if ($content.commands) { $content.commands.Count } else { 0 }
-        Write-Host ("  {0}) {1} ({2} comandos)" -f $i, $content.displayName, $count) -ForegroundColor Yellow
+        $content  = Get-Content $manifest -Raw | ConvertFrom-Json
+        $count    = if ($content.commands) { $content.commands.Count } else { 0 }
+        $label    = $content.displayName.PadRight(30)
+
+        Write-Host "  [" -NoNewline -ForegroundColor DarkGray
+        Write-Host "$i" -NoNewline -ForegroundColor Yellow
+        Write-Host "] " -NoNewline -ForegroundColor DarkGray
+        Write-Host $label -NoNewline -ForegroundColor White
+        Write-Host "$count comando(s)" -ForegroundColor DarkGray
         $i++
     }
-    Write-Host "  todo) Instalar todo" -ForegroundColor Yellow
-    Write-Host "  q) Salir" -ForegroundColor Yellow
+
+    Write-Host ""
+    Write-Host "  [" -NoNewline -ForegroundColor DarkGray
+    Write-Host "todo" -NoNewline -ForegroundColor Cyan
+    Write-Host "]  Instalar todas las categorias" -ForegroundColor White
+
+    Write-Host "  [" -NoNewline -ForegroundColor DarkGray
+    Write-Host "q" -NoNewline -ForegroundColor Red
+    Write-Host "]     Salir" -ForegroundColor White
 }
 
 function Show-CommandsInCategory {
     param([string]$Category)
 
     $manifest = Join-Path $CacheDir "$Category\manifest.json"
-    $content = Get-Content $manifest -Raw | ConvertFrom-Json
+    $content  = Get-Content $manifest -Raw | ConvertFrom-Json
 
-    Print-Header "Comandos en: $($content.displayName)"
+    Print-SectionHeader "Comandos en: $($content.displayName)"
+    Write-Blank
+
     $i = 1
     foreach ($cmd in $content.commands) {
-        Write-Host ("  {0}) {1} - {2}" -f $i, $cmd.id, $cmd.description)
+        Write-Host "  [" -NoNewline -ForegroundColor DarkGray
+        Write-Host "$i" -NoNewline -ForegroundColor Yellow
+        Write-Host "] " -NoNewline -ForegroundColor DarkGray
+        Write-Host "$($cmd.id)" -NoNewline -ForegroundColor White
+        Write-Host "  - $($cmd.description)" -ForegroundColor DarkGray
         $i++
     }
 }
@@ -181,7 +320,7 @@ function Get-CommandsFromCategory {
     param([string]$Category)
 
     $manifest = Join-Path $CacheDir "$Category\manifest.json"
-    $content = Get-Content $manifest -Raw | ConvertFrom-Json
+    $content  = Get-Content $manifest -Raw | ConvertFrom-Json
     return @($content.commands)
 }
 
@@ -206,22 +345,70 @@ function Install-Command {
 
     Copy-Item $source $dest -Force
     Print-Success "Instalado: $CmdFile"
+
+    $script:InstalledCount++
+    $script:InstalledFiles += $CmdFile
 }
 
 function Install-AllCategories {
     param([array]$Categories)
 
-    Print-Header "Instalando todas las categorias"
+    Print-SectionHeader "Instalando todas las categorias"
     foreach ($cat in $Categories) {
         $commands = Get-CommandsFromCategory -Category $cat
         foreach ($cmd in $commands) {
             Install-Command -Category $cat -CmdFile $cmd.file
         }
     }
-    Print-Success "Todo instalado."
 }
 
-# -- Flujo principal --
+# =============================================================================
+# RESUMEN FINAL
+# =============================================================================
+
+function Print-Summary {
+    $width = 62
+    Write-Blank
+    Write-Host ("=" * $width) -ForegroundColor DarkCyan
+    Write-Host "  RESUMEN DE INSTALACION" -ForegroundColor White
+    Write-Host ("=" * $width) -ForegroundColor DarkCyan
+    Write-Blank
+
+    Print-Success "Directorio: $InstallDir"
+    Print-Info    "Total instalados: $($script:InstalledCount) comando(s)"
+
+    if ($script:InstalledFiles.Count -gt 0) {
+        Write-Blank
+        Write-Host "  Comandos disponibles en tu agente IA:" -ForegroundColor White
+        Write-Host ("  " + ("-" * 40)) -ForegroundColor DarkGray
+
+        $script:InstalledFiles | Sort-Object | ForEach-Object {
+            $name = [System.IO.Path]::GetFileNameWithoutExtension($_)
+            Write-Host "    /" -NoNewline -ForegroundColor DarkCyan
+            Write-Host $name -ForegroundColor White
+        }
+    } elseif (Test-Path $InstallDir) {
+        Write-Blank
+        Write-Host "  Comandos disponibles en tu agente IA:" -ForegroundColor White
+        Write-Host ("  " + ("-" * 40)) -ForegroundColor DarkGray
+
+        Get-ChildItem -Path $InstallDir -Filter "*.md" | Sort-Object Name | ForEach-Object {
+            Write-Host "    /" -NoNewline -ForegroundColor DarkCyan
+            Write-Host $_.BaseName -ForegroundColor White
+        }
+    }
+
+    Write-Blank
+    Write-Host ("=" * $width) -ForegroundColor DarkCyan
+    Write-Host "  Listo. Ya puedes usar los comandos en tu agente IA." -ForegroundColor Green
+    Write-Host ("=" * $width) -ForegroundColor DarkCyan
+    Write-Blank
+}
+
+# =============================================================================
+# FLUJO PRINCIPAL
+# =============================================================================
+
 function Main {
     Print-Banner
     Detect-InstallTarget
@@ -235,9 +422,9 @@ function Main {
 
     $stopInstalling = $false
     while ($true) {
-        Write-Host ""
+        Write-Blank
         Show-Categories -Categories $categories
-        Write-Host ""
+        Write-Blank
         Prompt-Input "Selecciona categoria, 'todo' o 'q'" "" "choice"
 
         if ([string]::IsNullOrWhiteSpace($choice)) {
@@ -250,25 +437,24 @@ function Main {
                 Print-Info "Saliendo..."
                 exit 0
             }
-            "todo" {
-                Install-AllCategories -Categories $categories
-                $stopInstalling = $true
-            }
-            "all" {
+            { $_ -in @("todo", "all") } {
                 Install-AllCategories -Categories $categories
                 $stopInstalling = $true
             }
             default {
                 $categoryNumber = 0
-                if (-not [int]::TryParse($choice, [ref]$categoryNumber) -or $categoryNumber -lt 1 -or $categoryNumber -gt $categories.Count) {
-                    Print-Error "Opcion invalida"
+                if (-not [int]::TryParse($choice, [ref]$categoryNumber) -or
+                    $categoryNumber -lt 1 -or
+                    $categoryNumber -gt $categories.Count) {
+                    Print-Error "Opcion invalida. Ingresa un numero del 1 al $($categories.Count), 'todo' o 'q'."
                     continue
                 }
 
                 $selectedCat = $categories[$categoryNumber - 1]
                 Show-CommandsInCategory -Category $selectedCat
-                Write-Host ""
-                Prompt-Input "Selecciona comandos (ejemplo: 1,3,4 o 'todo')" "todo" "cmdChoice"
+
+                Write-Blank
+                Prompt-Input "Selecciona comandos (ej: 1,3,4 o 'todo')" "todo" "cmdChoice"
 
                 $commands = Get-CommandsFromCategory -Category $selectedCat
 
@@ -285,8 +471,8 @@ function Main {
                     }
                 }
 
-                Write-Host ""
-                Prompt-Input "Instalar otra categoria?" "s" "continue"
+                Write-Blank
+                Prompt-Input "Instalar otra categoria? (s/n)" "s" "continue"
                 if ($continue.ToLower() -notin @("s", "si", "y", "yes")) {
                     $stopInstalling = $true
                 }
@@ -296,18 +482,7 @@ function Main {
         if ($stopInstalling) { break }
     }
 
-    Write-Host ""
-    Print-Header "Resumen"
-    Print-Success "Comandos instalados en: $InstallDir"
-    Write-Host ""
-    Print-Info "Comandos disponibles en tu agente IA:"
-    if (Test-Path $InstallDir) {
-        Get-ChildItem -Path $InstallDir -Filter "*.md" | Sort-Object Name | ForEach-Object {
-            Write-Host "  /$($_.BaseName)" -ForegroundColor Green
-        }
-    }
-    Write-Host ""
-    Print-Success "Listo. Ya podes usar los comandos en tu agente IA."
+    Print-Summary
 }
 
 Main
