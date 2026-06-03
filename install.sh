@@ -8,7 +8,7 @@
 #   ./install.sh
 # ═══════════════════════════════════════════════════════════════════
 
-set -e
+set -o pipefail
 
 # ── Configuración ──
 REPO_URL="https://github.com/JohnDevRD/ai-agent-commands"
@@ -84,11 +84,11 @@ prompt() {
     if [ -n "$default" ]; then
         printf "  ${WHITE}%s${NC} ${DARK_GRAY}[${NC}${YELLOW}%s${NC}${DARK_GRAY}]${NC} ${DARK_GRAY}:${NC} " \
                "$prompt_text" "$default"
-        read -r input
+        read -r input </dev/tty || input=""
         eval "$var_name=\"${input:-$default}\""
     else
         printf "  ${WHITE}%s${NC} ${DARK_GRAY}:${NC} " "$prompt_text"
-        read -r input
+        read -r input </dev/tty || input=""
         eval "$var_name=\"$input\""
     fi
 }
@@ -225,13 +225,20 @@ install_command() {
         return 1
     fi
 
-    mkdir -p "$INSTALL_DIR"
+    if ! mkdir -p "$INSTALL_DIR"; then
+        print_error "No se pudo crear el directorio: $INSTALL_DIR"
+        return 1
+    fi
 
     if [ -f "$INSTALL_DIR/$cmd_file" ]; then
         print_warning "Sobrescribiendo: $cmd_file"
     fi
 
-    cp "$source" "$INSTALL_DIR/$cmd_file"
+    if ! cp "$source" "$INSTALL_DIR/$cmd_file"; then
+        print_error "Falló la copia de: $cmd_file"
+        return 1
+    fi
+
     print_success "Instalado: $cmd_file"
 
     INSTALLED_COUNT=$((INSTALLED_COUNT + 1))
